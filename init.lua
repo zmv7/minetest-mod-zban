@@ -35,9 +35,13 @@ core.register_chatcommand("zban",{
     func = function(name,param)
         local player,reason = param:match("^(%S+) (.+)$")
         if not player and not reason then return false, "Invalid params" end
+        if player == "$zban_history" then return false, "Unallowed nickname" end
         core.ban_player(player)
         core.kick_player(player,"ZBanned permanently for a reason: "..reason)
         list:set_string(player,reason)
+        if zban_history then
+            zban_history.save(player,os.date().." ZBanned by "..name.." for a reason: "..reason)
+        end
         return true, "ZBanned "..player
 end})
 core.register_chatcommand("ztban",{
@@ -55,6 +59,9 @@ core.register_chatcommand("ztban",{
         core.ban_player(player)
         core.kick_player(player,"ZBanned until "..os.date("%c", expires).." for a reason: "..reason)
         list:set_string(player,reason.." | until "..expires)
+        if zban_history then
+            zban_history.save(player,os.date().." ZBanned until "..os.date("%c", expires).." by "..name.." for a reason: "..reason)
+        end
         return true, "ZBanned "..player.." until "..os.date("%c", expires)
 end})
 core.register_chatcommand("zuban",{
@@ -64,11 +71,14 @@ core.register_chatcommand("zuban",{
     func = function(name,param)
         list:set_string(param,"")
         core.unban_player_or_ip(param)
+        if zban_history then
+            zban_history.save(param,os.date().." ZUnbanned by "..name)
+        end
         return true, "ZUnbanned "..param
 end})
 core.register_chatcommand("zbanned",{
     description = "Show list of ZBanned players",
-    privs = {vanish=true},
+    privs = {ban=true},
     func = function(name,param)
         local msg = "ZBanned: "
         local table = list:to_table().fields
