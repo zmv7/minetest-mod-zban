@@ -81,8 +81,8 @@ core.register_chatcommand("zbanned",{
     privs = {ban=true},
     func = function(name,param)
         local msg = "ZBanned: "
-        local table = s:to_table().fields
-        for nick,val in pairs(table) do
+        local stable = s:to_table().fields
+        for nick,val in pairs(stable) do
             local expires = val:match("until %d+")
             if expires then
                 local time = expires:gsub("until ","")
