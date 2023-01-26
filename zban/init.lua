@@ -1,4 +1,4 @@
-local list = core.get_mod_storage()
+local s = core.get_mod_storage()
 local unit_to_secs = {
 	s = 1, m = 60, h = 3600,
 	D = 86400, W = 604800, M = 2592000, Y = 31104000,
@@ -12,7 +12,7 @@ local function parse_time(t)
 	return secs
 end
 core.register_on_prejoinplayer(function(name, ip)
-    local reason = list:get_string(name)
+    local reason = s:get_string(name)
     local date = reason:match("until %d+")
     if date then date = date:gsub("until ","") end
     local now = os.date("%s")
@@ -23,7 +23,7 @@ core.register_on_prejoinplayer(function(name, ip)
         if tonumber(date) > tonumber(now) then
             return "ZBanned until "..os.date("%c", date).." for a reason: "..reason:gsub(" |.+","")
         else
-            list:set_string(name,"")
+            s:set_string(name,"")
             core.unban_player_or_ip(name)
         end
     end
@@ -38,7 +38,7 @@ core.register_chatcommand("zban",{
         if player == "$zban_history" then return false, "Unallowed nickname" end
         core.ban_player(player)
         core.kick_player(player,"ZBanned permanently for a reason: "..reason)
-        list:set_string(player,reason)
+        s:set_string(player,reason)
         if zban_history then
             zban_history.save(player,os.date().." ZBanned by "..name.." for a reason: "..reason)
         end
@@ -58,7 +58,7 @@ core.register_chatcommand("ztban",{
 		local expires = os.time() + time
         core.ban_player(player)
         core.kick_player(player,"ZBanned until "..os.date("%c", expires).." for a reason: "..reason)
-        list:set_string(player,reason.." | until "..expires)
+        s:set_string(player,reason.." | until "..expires)
         if zban_history then
             zban_history.save(player,os.date().." ZBanned until "..os.date("%c", expires).." by "..name.." for a reason: "..reason)
         end
@@ -69,7 +69,7 @@ core.register_chatcommand("zuban",{
     privs = {ban=true},
     params = "<name>",
     func = function(name,param)
-        list:set_string(param,"")
+        s:set_string(param,"")
         core.unban_player_or_ip(param)
         if zban_history then
             zban_history.save(param,os.date().." ZUnbanned by "..name)
@@ -81,7 +81,7 @@ core.register_chatcommand("zbanned",{
     privs = {ban=true},
     func = function(name,param)
         local msg = "ZBanned: "
-        local table = list:to_table().fields
+        local table = s:to_table().fields
         for nick,val in pairs(table) do
             local expires = val:match("until %d+")
             if expires then
